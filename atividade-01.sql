@@ -9,3 +9,8 @@ Obtenha:
 4) O código das hospedagens realizadas pelo João ou em apartamentos da categoria luxo.
 
 */
+
+-- 1)
+SELECT NOME FROM HOSPEDE WHERE 
+    DATE_PART('YEAR', DT_NASC) = 2000 OR 
+    COD_HOSP = (SELECT COD_HOSP FROM HOSPEDAGEM WHERE DT_ENT = '2021-07-13');
