@@ -48,9 +48,9 @@
 
 	SELECT nome_vendedor 
 	FROM (SELECT nome_vendedor, SUM(valor_vendido) AS total 
-		FROM venda 
-		WHERE data_venda BETWEEN '2020-03-01' AND '2020-03-31'
-		GROUP BY nome_vendedor) AS total_vendedor
+		  FROM venda 
+		  WHERE data_venda BETWEEN '2020-03-01' AND '2020-03-31'
+		  GROUP BY nome_vendedor) AS total_vendedor
 	ORDER BY total DESC
 	LIMIT 1;
 
