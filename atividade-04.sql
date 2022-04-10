@@ -26,21 +26,43 @@
 --  2.1) Mostre o nome dos vendedores que venderam mais que X reais no mês de março de 2020.
 	
 	-- View com o valor total em vendas no mês de março de 2020 por vendedor.
+	-- CREATE VIEW total_vendedor AS
+	-- SELECT nome_vendedor AS vendedor, SUM(valor_vendido) AS total 
+	-- FROM venda 
+	-- WHERE data_venda BETWEEN '2020-03-01' AND '2020-03-31'
+	-- GROUP BY nome_vendedor;
+
+	-- SELECT vendedor FROM total_vendedor WHERE total >= 200;
+
+	SELECT nome_vendedor 
+	FROM (SELECT nome_vendedor, SUM(valor_vendido) AS total 
+		  FROM venda 
+		  WHERE data_venda BETWEEN '2020-03-01' AND '2020-03-31'
+		  GROUP BY nome_vendedor) AS total_vendedor
+	WHERE total >= 200;
+
+
+--  2.2) Mostre o nome de apenas um dos vendedores que mais vendeu no mês de março de 2020.
+	
+	-- SELECT vendedor FROM total_vendedor ORDER BY total DESC LIMIT 1;
+
+	SELECT nome_vendedor 
+	FROM (SELECT nome_vendedor, SUM(valor_vendido) AS total 
+		FROM venda 
+		WHERE data_venda BETWEEN '2020-03-01' AND '2020-03-31'
+		GROUP BY nome_vendedor) AS total_vendedor
+	ORDER BY total DESC
+	LIMIT 1;
+
+
+--  3) Mostre o nome do(s) vendedor(es) que mais vendeu no mês de março de 2020.
+
+	-- View com o valor total em vendas no mês de março de 2020 por vendedor.
 	CREATE VIEW total_vendedor AS
 	SELECT nome_vendedor AS vendedor, SUM(valor_vendido) AS total 
 	FROM venda 
 	WHERE data_venda BETWEEN '2020-03-01' AND '2020-03-31'
 	GROUP BY nome_vendedor;
-
-	SELECT vendedor FROM total_vendedor WHERE total >= 200;
-
-
---  2.2) Mostre o nome de apenas um dos vendedores que mais vendeu no mês de março de 2020.
-	
-	SELECT vendedor FROM total_vendedor ORDER BY total DESC LIMIT 1;
-
-
---  3) Mostre o nome do(s) vendedor(es) que mais vendeu no mês de março de 2020.
 
 	-- View com os melhores vendedores em março de de 2020 por valor total em vendas.
 	CREATE VIEW melhor_vendedor AS
