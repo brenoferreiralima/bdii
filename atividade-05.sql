@@ -130,7 +130,7 @@ FOR EACH ROW EXECUTE PROCEDURE func_audita_empregado();
 CREATE TABLE empregado2(
 	codigo SERIAL PRIMARY KEY,
 	nome VARCHAR,
-	SALARIO INTEGER
+	salario INTEGER
 );
 
 -- tabela empregado2 audit
@@ -142,3 +142,35 @@ CREATE TABLE empregado2_audit(
 	valor_antigo TEXT,
 	valor_novo TEXT
 );
+
+-- funcão audita empregado2
+CREATE FUNCTION  func_audita_empregado2()
+RETURNS trigger AS $func_audita_empregado2$
+BEGIN
+	IF TG_OP = 'INSERT' THEN
+		INSERT INTO empregado2_audit VALUES(CURRENT_USER, NOW(), NEW.codigo, NULL, NULL, NULL);
+		RETURN NEW;
+	END IF;
+	IF TG_OP = 'UPDATE' THEN
+		IF NEW.codigo <> OLD.codigo THEN
+			RAISE EXCEPTION 'Código do empregado não pode ser alterado!';
+		END IF;
+		IF NEW.salario <> OLD.salario THEN
+			INSERT INTO empregado2_audit VALUES(CURRENT_USER, NOW(), OLD.codigo, 'salario', OLD.salario, NEW.salario);
+		END IF;
+		IF NEW.nome <> OLD.nome THEN
+			INSERT INTO empregado2_audit VALUES(CURRENT_USER, NOW(), OLD.codigo, 'nome', OLD.nome, NEW.nome);
+		END IF;
+		RETURN NEW;
+	END IF;
+	IF TG_OP = 'DELETE' THEN
+		INSERT INTO empregado2_audit VALUES(CURRENT_USER, NOW(), OLD.codigo, NULL, NULL, NULL)
+		RETURN NEW;
+	END IF;
+END;
+$func_audita_empregado2$ LANGUAGE plpgsql;
+
+-- trigger audita empregado2
+CREATE TRIGGER audita_empregado2
+AFTER INSERT OR UPDATE OR DELETE ON empregado2
+FOR EACH ROW EXECUTE PROCEDURE func_audita_empregado2();
