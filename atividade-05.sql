@@ -77,6 +77,32 @@ CREATE TABLE empregado_auditoria(
 	salario INTEGER
 );
 
+-- funcão audita empregado
+CREATE FUNCTION  func_audita_empregado()
+RETURNS trigger AS $func_audita_empregado$
+BEGIN
+	IF TG_OP = 'INSERT' THEN
+		INSERT INTO empregado_auditoria VALUES('I', CURRENT_USER, NOW(), NEW.nome, NEW.salario);
+		RETURN NEW;
+	END IF;
+	IF TG_OP = 'UPDATE' THEN
+		UPDATE empregado_auditoria SET(operacao, usuario, data, nome, salario) = ('A', CURRENT_USER, NOW(), NEW.nome, NEW.salario)
+		WHERE empregado_auditoria.nome = OLD.nome;
+		RETURN NEW;
+	END IF;
+	IF TG_OP = 'DELETE' THEN
+		UPDATE empregado_auditoria SET(operacao, usuario, data, nome, salario) = ('E', CURRENT_USER, NOW(), OLD.nome, OLD.salario)
+		WHERE empregado_auditoria.nome = OLD.nome;
+		RETURN NEW;
+	END IF;
+END;
+$func_audita_empregado$ LANGUAGE plpgsql;
+
+-- trigger audita empregado
+CREATE TRIGGER audita_empregado
+AFTER INSERT OR UPDATE OR DELETE ON empregado
+FOR EACH ROW EXECUTE PROCEDURE func_audita_empregado();
+
 
 /* 
 3)	Crie a tabela Empregado2 com os atributos:
