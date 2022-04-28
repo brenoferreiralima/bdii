@@ -21,6 +21,30 @@ CREATE TABLE funcionario(
 	usuario_que_atualizou VARCHAR(30)
 );
 
+-- função valida funcionário
+CREATE FUNCTION func_valida_funcionario() 
+RETURNS trigger AS $func_valida_funcionario$
+BEGIN
+	IF NEW.nome IS NULL THEN
+		RAISE EXCEPTION 'Nome do funcionário não pode ser nulo!';
+	END IF;
+	IF NEW.salario IS NULL THEN
+		RAISE EXCEPTION 'Salário do funcionário não pode ser nulo!';
+	END IF;
+	IF NEW.salario < 0 THEN
+		RAISE EXCEPTION 'Salário não pode ser menor que ZERO!';
+	END IF;
+	NEW.data_ultima_atualizacao := NOW();
+	NEW.usuario_que_atualizou := CURRENT_USER;
+	RETURN NEW;
+END;
+$func_valida_funcionario$ LANGUAGE plpgsql;
+
+-- trigger valida funcionário
+CREATE TRIGGER valida_funcionario 
+BEFORE INSERT ON funcionario 
+FOR EACH ROW EXECUTE PROCEDURE func_valida_funcionario();
+
 
 /* 
 2)	Crie uma tabela chamada Empregado com os atributos nome e salário.
