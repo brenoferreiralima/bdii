@@ -12,6 +12,15 @@
 	Dica: Você pode usar Raise Exception, ‘now’ e current_user
 */
 
+-- tabela funcionário
+CREATE TABLE funcionario(
+	codigo INT,
+	nome VARCHAR(30),
+	salario INT,
+	data_ultima_atualizacao TIMESTAMP,
+	usuario_que_atualizou VARCHAR(30)
+);
+
 
 /* 
 2)	Crie uma tabela chamada Empregado com os atributos nome e salário.
@@ -29,6 +38,20 @@
 	Dica: Você pode usar a variável especial TG_OP
  */
 
+-- tabela empregado
+CREATE TABLE empregado(
+	nome VARCHAR,
+	salario INTEGER
+);
+
+-- tabela empregado auditoria
+CREATE TABLE empregado_auditoria(
+	operacao CHAR(1),
+	usuario VARCHAR,
+	data TIMESTAMP,
+	nome VARCHAR,
+	salario INTEGER
+);
 
 
 /* 
@@ -36,7 +59,7 @@
 		código (serial e chave primária)
 		nome (varchar)
 		salário (integer).
-		Crie também a tabela Empregado2_audit com os seguintes atributos:
+	Crie também a tabela Empregado2_audit com os seguintes atributos:
 		usuário (varchar)
 		data (timestamp)
 		id (integer)
@@ -52,3 +75,20 @@
 	o "valor_antigo" armazenará os valores antigos no caso de deleção ou atualização (no caso de inserção, ela deverá ficar em branco) 
 	e "valor_novo" armazenará os valores novos no caso de inserções ou atualizações (no caso de deleções, essa coluna deverá ficar vazia).
  */
+
+--  tabela empregado2
+CREATE TABLE empregado2(
+	codigo SERIAL PRIMARY KEY,
+	nome VARCHAR,
+	SALARIO INTEGER
+);
+
+-- tabela empregado2 audit
+CREATE TABLE empregado2_audit(
+	usuario VARCHAR,
+	data TIMESTAMP,
+	id INTEGER,
+	coluna TEXT,
+	valor_antigo TEXT,
+	valor_novo TEXT
+);
