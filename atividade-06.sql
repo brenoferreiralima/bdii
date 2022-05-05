@@ -35,7 +35,7 @@ CREATE TABLE pedido(
 	quant_itens_pedidos INT,
 	valor_total_pedido INT,
 	data_pedido DATE,
-	hora_pedito TIME
+	hora_pedido TIME
 );
 
 -- tabela fornecedor
@@ -55,7 +55,7 @@ Essa função deve receber apenas os seguintes parâmetros:
 */
 
 -- função realiza venda
-CREATE FUNCTION realiza_venda(cod_ped INT, cod_liv INT, nome_cli VARCHAR)
+CREATE FUNCTION realiza_venda(cod_ped INT, cod_liv INT, nome_cli VARCHAR, quant_vend INT)
 RETURNS void AS $realiza_venda$
 DECLARE
 	val_ped INT;
@@ -65,9 +65,10 @@ BEGIN
 	SELECT cod_fornecedor INTO cod_forn FROM fornecedor WHERE nome_fornecedor = nome_cli;
 	INSERT INTO pedido VALUES(cod_ped, cod_forn, 1, val_ped, now(), now());
 	INSERT INTO item_pedido VALUES(cod_liv, cod_ped, 1, val_ped);
-	UPDATE livro SET quant_estoque = quant_estoque - 1;
+	UPDATE livro SET quant_estoque = quant_estoque - 1 WHERE cod_livro = cod_liv;
 END;
 $realiza_venda$ LANGUAGE plpgsql;
+
 
 /*
 2) Crie uma função que realiza a venda como ela deve realmente acontecer, ou seja, 
@@ -78,3 +79,28 @@ A partir do segundo, caso o código da venda já exista na tabela venda, as inse
 Não esqueça de decrementar a quantidade em estoque da tabela Livro, de atualizar o valor total da venda e a quantidade de itens da tabela venda. 
 Os parâmetros passados para a função são os mesmos da questão anterior.
 */
+
+-- função realiza venda real
+CREATE FUNCTION realiza_venda_real(cod_ped INT, cod_liv INT, nome_cli VARCHAR, quant_vend INT)
+RETURNS void AS $realiza_venda_real$
+DECLARE
+	val_ped INT;
+	cod_forn INT;
+BEGIN
+	IF NOT EXISTS(SELECT * FROM pedido WHERE cod_pedido = cod_ped) THEN
+		SELECT cod_fornecedor INTO cod_forn FROM fornecedor WHERE nome_fornecedor = nome_cli;
+		SELECT valor_unitario * quant_vend INTO val_ped FROM livro WHERE cod_livro = cod_liv;
+		INSERT INTO pedido VALUES(cod_ped, cod_forn, 1, val_ped, now(), now());
+		INSERT INTO item_pedido VALUES(cod_liv, cod_ped, quant_vend, val_ped);
+		UPDATE livro SET quant_estoque = quant_estoque - quant_vend WHERE cod_livro = cod_liv;
+	END IF;
+	IF EXISTS(SELECT * FROM pedido WHERE cod_pedido = cod_ped) THEN
+		SELECT valor_unitario * quant_vend INTO val_ped FROM livro WHERE cod_livro = cod_liv;
+		UPDATE pedido SET (quant_itens_pedidos, valor_total_pedido, data_pedido, hora_pedido) = 
+			(quant_itens_pedidos + 1, valor_total_pedido + val_ped, now(), now())
+			WHERE cod_pedido = cod_ped;
+		INSERT INTO item_pedido VALUES(cod_liv, cod_ped, quant_vend, val_ped);
+		UPDATE livro SET quant_estoque = quant_estoque - quant_vend WHERE cod_livro = cod_liv;
+	END IF;
+END;
+$realiza_venda_real$ LANGUAGE plpgsql;
