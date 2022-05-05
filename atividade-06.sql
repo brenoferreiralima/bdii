@@ -6,6 +6,45 @@ Nenhum atributo deverá ser "auto-incrementável".
 A seguir, responda as questões abaixo:
 */
 
+-- tabela titulo
+CREATE TABLE titulo(
+	cod_titulo INT,
+	descr_titulo VARCHAR
+);
+
+-- tabela livro
+CREATE TABLE livro(
+	cod_livro INT,
+	cod_titulo INT,
+	valor_unitario INT,
+	quant_estoque INT
+);
+
+-- tabela item_pedido
+CREATE TABLE item_pedido(
+	cod_livro INT,
+	cod_pedido INT,
+	quantidade_pedido INT,
+	valor_total_item INT
+);
+
+-- tabela pedido
+CREATE TABLE pedido(
+	cod_pedido INT,
+	cod_fornecedor INT,
+	quant_itens_pedidos INT,
+	valor_total_pedido INT,
+	data_pedido DATE,
+	hora_pedito TIME,
+);
+
+-- tabela fornecedor
+CREATE TABLE fornecedor(
+	cod_fornecedor INT,
+	nome_fornecedor VARCHAR,
+	endereco_fornecedor VARCHAR
+);
+
 
 /*
 1) Crie uma função que realiza venda de um único livro e que possui estoque suficiente. 
