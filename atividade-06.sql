@@ -20,7 +20,7 @@ CREATE TABLE livro(
 	quant_estoque INT
 );
 
--- tabela item_pedido
+-- tabela item pedido
 CREATE TABLE item_pedido(
 	cod_livro INT,
 	cod_pedido INT,
@@ -35,7 +35,7 @@ CREATE TABLE pedido(
 	quant_itens_pedidos INT,
 	valor_total_pedido INT,
 	data_pedido DATE,
-	hora_pedito TIME,
+	hora_pedito TIME
 );
 
 -- tabela fornecedor
@@ -54,6 +54,20 @@ Essa função deve receber apenas os seguintes parâmetros:
 	Código da venda, código do livro, nome do cliente (imagine que não existam dois clientes com o mesmo nome) e quantidade vendida.
 */
 
+-- função realiza venda
+CREATE FUNCTION realiza_venda(cod_ped INT, cod_liv INT, nome_cli VARCHAR)
+RETURNS void AS $realiza_venda$
+DECLARE
+	val_ped INT;
+	cod_forn INT;
+BEGIN
+	SELECT valor_unitario INTO val_ped FROM livro WHERE cod_livro = cod_liv;
+	SELECT cod_fornecedor INTO cod_forn FROM fornecedor WHERE nome_fornecedor = nome_cli;
+	INSERT INTO pedido VALUES(cod_ped, cod_forn, 1, val_ped, now(), now());
+	INSERT INTO item_pedido VALUES(cod_liv, cod_ped, 1, val_ped);
+	UPDATE livro SET quant_estoque = quant_estoque - 1;
+END;
+$realiza_venda$ LANGUAGE plpgsql;
 
 /*
 2) Crie uma função que realiza a venda como ela deve realmente acontecer, ou seja, 
