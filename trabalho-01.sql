@@ -66,6 +66,33 @@ Mensagens devem ser enviadas para o leitor informando-o do resultado do processa
 Para isso, sugere-se usar "raise notice".
 */
 
+-- função reserva titulo
+CREATE FUNCTION reserva_titulo(pleitor VARCHAR, ptitulo VARCHAR, pfuncionario VARCHAR)
+RETURNS void AS $$
+DECLARE
+	vcod_leitor INT := (SELECT cod_leitor FROM leitor WHERE nome_l = pleitor);
+	vcod_tit INT := (SELECT cod_tit FROM titulo WHERE nome_t = ptitulo);
+    vcod_func INT := (SELECT cod_func FROM funcionario WHERE nome_f = pfuncionario);
+    vcod_res INT := (SELECT MAX(cod_res) FROM reserva) + 1;
+    vquant_tit INT := (SELECT COUNT(cod_livro) FROM livro WHERE cod_tit = (SELECT cod_tit FROM titulo WHERE nome_t = ptitulo));
+    vquant_emp INT := (SELECT COUNT(cod_item) FROM item_emprestimo 
+                  INNER JOIN (SELECT cod_livro FROM livro WHERE cod_tit = (SELECT cod_tit FROM titulo WHERE nome_t = ptitulo)) AS cl ON
+                  item_emprestimo.cod_livro = cl.cod_livro 
+                  INNER JOIN emprestimo ON item_emprestimo.cod_emprestimo = emprestimo.cod_emprestimo
+                  WHERE dt_devolucao IS NULL);
+BEGIN
+    IF vcod_res IS NULL THEN 
+        vcod_res := 1; 
+    END IF;
+    IF vquant_emp = vquant_tit THEN
+        INSERT INTO reserva VALUES(vcod_res, vcod_leitor, vcod_tit, vcod_func, NOW(), 'A');
+        RAISE NOTICE 'Reserva realizada com sucesso!';
+    ELSEIF vquant_emp < vquant_tit THEN
+        RAISE NOTICE 'Esse títuto está diponível! Pegue agora mesmo.';
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
 /*
 b) Emprestar um único livro. 
 No caso do empréstimo, a função receberá o código do empréstimo, 
