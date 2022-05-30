@@ -93,6 +93,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
 /*
 b) Emprestar um único livro. 
 No caso do empréstimo, a função receberá o código do empréstimo, 
@@ -110,6 +111,35 @@ Assim, você não se preocupará se já existe o mesmo código de empréstimo na
 Da mesma forma que na função anterior, 
 mensagens devem ser enviadas para o leitor informando-o do resultado do processamento da função.
 */
+
+-- função emprestar livro
+CREATE FUNCTION empresta_livro(pcod_emprestimo INT, pcod_livro INT, pdt_emprestimo DATE, pleitor VARCHAR, pfuncionario VARCHAR)
+RETURNS void AS $$
+DECLARE
+    vcod_leitor INT := (SELECT cod_leitor FROM leitor WHERE nome_l = pleitor);
+    vcod_func INT := (SELECT cod_func FROM funcionario WHERE nome_f = pfuncionario);
+    vdt_prev_devolucao DATE := pdt_emprestimo + 2;
+    vcod_item INT := (SELECT MAX(cod_item) FROM item_emprestimo);
+    vquant_res INT := (SELECT COUNT(cod_res) FROM reserva WHERE status = 'A' AND cod_tit IN (SELECT cod_tit FROM livro WHERE cod_livro = pcod_livro));
+    vleitor_res VARCHAR := (SELECT nome_l FROM leitor INNER JOIN
+                           (SELECT * FROM reserva WHERE status = 'A' AND cod_tit IN (SELECT cod_tit FROM livro WHERE cod_livro = pcod_livro)) AS r
+                           ON leitor.cod_leitor = r.cod_leitor
+                           ORDER BY data_hora
+                           LIMIT 1);
+BEGIN
+    IF vquant_res = 0 OR vleitor_res = pleitor THEN
+        IF vcod_item IS NULL THEN 
+            vcod_item := 1; 
+        ELSE vcod_item := vcod_item + 1;
+        END IF;
+        INSERT INTO emprestimo VALUES(pcod_emprestimo, vcod_leitor, vcod_func, pdt_emprestimo, vdt_prev_devolucao, NULL, 1, NULL);
+        INSERT INTO item_emprestimo VALUES(vcod_item, pcod_emprestimo, pcod_livro);
+        RAISE NOTICE 'Boa leitura!';
+    ELSE RAISE NOTICE 'Este título está reservado para outra pessoa :(';
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
 
 /*
 c) Dar baixa em um empréstimo. 
