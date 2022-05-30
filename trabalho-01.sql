@@ -10,6 +10,23 @@ pois o objetivo era apenas evidenciar a ligação entre as tabelas.
 do mesmo empréstimo com o mesmo código de livro.
 */
 
+-- funcão checa duplicidade empréstimo
+CREATE FUNCTION  checa_duplicidade_emprestimo()
+RETURNS trigger AS $$
+BEGIN
+    IF EXISTS(SELECT * FROM item_emprestimo WHERE cod_emprestimo = NEW.cod_emprestimo AND cod_livro = NEW.cod_livro) THEN
+        RAISE EXCEPTION 'Você já possui uma cópia desse livro!';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- trigger checa duplicidade empréstimo
+CREATE TRIGGER checa_duplicidade_emprestimo
+BEFORE INSERT OR UPDATE ON item_emprestimo
+FOR EACH ROW EXECUTE PROCEDURE checa_duplicidade_emprestimo();
+
 /*
 2) Crie um trigger que altere o status da reserva de um leitor para I (Inativo) 
 sempre que ele tomar emprestado o livro do título que ele reservou.
