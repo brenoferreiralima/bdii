@@ -21,16 +21,38 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 -- trigger checa duplicidade empréstimo
 CREATE TRIGGER checa_duplicidade_emprestimo
 BEFORE INSERT OR UPDATE ON item_emprestimo
 FOR EACH ROW EXECUTE PROCEDURE checa_duplicidade_emprestimo();
 
+
 /*
 2) Crie um trigger que altere o status da reserva de um leitor para I (Inativo) 
 sempre que ele tomar emprestado o livro do título que ele reservou.
 */
+
+-- funcão inativa reserva
+CREATE FUNCTION  inativa_reserva()
+RETURNS trigger AS $$
+DECLARE
+    titulo INTEGER := (SELECT cod_tit FROM livro WHERE cod_livro = NEW.cod_livro);
+    leitor INTEGER := (SELECT cod_leitor FROM emprestimo WHERE cod_emprestimo = NEW.cod_emprestimo);
+BEGIN
+    IF EXISTS(SELECT * FROM reserva WHERE cod_leitor = leitor AND cod_tit = titulo) THEN
+        UPDATE reserva SET status = 'I' WHERE cod_leitor = leitor AND cod_tit = titulo;
+        RETURN NEW;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- trigger inativa reserva
+CREATE TRIGGER inativa_reserva
+AFTER INSERT OR UPDATE ON item_emprestimo
+FOR EACH ROW EXECUTE PROCEDURE inativa_reserva();
+
 
 /*
 3) Crie funções que realizem as seguintes operações:
