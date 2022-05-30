@@ -47,7 +47,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 -- trigger inativa reserva
 CREATE TRIGGER inativa_reserva
 AFTER INSERT OR UPDATE ON item_emprestimo
@@ -151,7 +150,7 @@ A função deverá receber apenas o código do empréstimo que será dado baixa.
 */
 
 -- função dar baixa
-CREATE OR REPLACE FUNCTION dar_baixa(pcod_emprestimo INT)
+CREATE FUNCTION dar_baixa(pcod_emprestimo INT)
 RETURNS void AS $$
 DECLARE
     vdt_prev_devolucao DATE := (SELECT dt_prev_devolucao FROM emprestimo WHERE cod_emprestimo = pcod_emprestimo);
