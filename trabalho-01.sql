@@ -149,3 +149,21 @@ Em outras palavras, caso o leitor dê baixa em um empréstimo que possuía um li
 o função deveria calcular uma multa no valor de R$ 5,00. 
 A função deverá receber apenas o código do empréstimo que será dado baixa.
 */
+
+-- função dar baixa
+CREATE OR REPLACE FUNCTION dar_baixa(pcod_emprestimo INT)
+RETURNS void AS $$
+DECLARE
+    vdt_prev_devolucao DATE := (SELECT dt_prev_devolucao FROM emprestimo WHERE cod_emprestimo = pcod_emprestimo);
+    vquant_livro INT := (SELECT quant_livro FROM emprestimo WHERE cod_emprestimo = pcod_emprestimo);
+    vdias_atraso INT := (SELECT DATE(NOW()) - vdt_prev_devolucao);
+    vvalor_multa FLOAT := vquant_livro * vdias_atraso * 2.50;
+BEGIN
+    UPDATE emprestimo SET(dt_devolucao, valor_multa) = (NOW(), vvalor_multa) WHERE cod_emprestimo = pcod_emprestimo;
+    IF vvalor_multa <= 0 THEN
+        RAISE NOTICE 'Devolução realizada com sucesso!';
+    ELSE
+        RAISE NOTICE 'Devolução realizada com sucesso! O Valor de sua multa por atraso é R$% reais!', vvalor_multa;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
